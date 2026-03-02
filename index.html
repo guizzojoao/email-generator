@@ -258,8 +258,15 @@
     }
 
     function copyToClipboard() {
-      const html = document.getElementById('signaturePreview').innerHTML;
-      const blob = new Blob([html], { type: 'text/html' });
+      const preview = document.getElementById('signaturePreview');
+      const clone = preview.cloneNode(true);
+
+      // Resolve relative img src to absolute URLs so email clients can load them
+      const originalImgs = preview.querySelectorAll('img');
+      const cloneImgs = clone.querySelectorAll('img');
+      originalImgs.forEach((img, i) => cloneImgs[i].setAttribute('src', img.src));
+
+      const blob = new Blob([clone.innerHTML], { type: 'text/html' });
       navigator.clipboard.write([new ClipboardItem({ 'text/html': blob })]).then(() => {
         alert('Signature copied to clipboard!');
       }, () => {
