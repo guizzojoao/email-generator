@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Email Signature Generator</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
+    :root {
+      --bg: #f5f5f5;
+      --surface: #ffffff;
+      --text: #333333;
+      --text-muted: #666666;
+      --border: #cccccc;
+      --input-bg: #ffffff;
+    }
+
+    [data-theme="dark"] {
+      --bg: #1a1a1a;
+      --surface: #2a2a2a;
+      --text: #e0e0e0;
+      --text-muted: #999999;
+      --border: #444444;
+      --input-bg: #333333;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .container { max-width: 600px; margin: auto; }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    h1 { font-size: 20px; margin: 0; }
+
+    .dark-mode-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-muted);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .dark-mode-toggle input[type="checkbox"] { cursor: pointer; }
+
+    .form-group { margin-bottom: 16px; }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .form-group input[type="text"],
+    .form-group select {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--input-bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+    }
+
+    .form-group .hint {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .preview-box {
+      border: 1px solid var(--border);
+      padding: 20px;
+      background: var(--surface);
+      border-radius: 8px;
+      margin-top: 20px;
+      overflow-x: auto;
+    }
+
+    .preview-box h2 {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin: 0 0 16px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 10px 20px;
+      background: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 16px;
+    }
+
+    .btn:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+    }
+
+    .btn:not(:disabled):hover { background: #0069d9; }
+
+    footer {
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 30px;
+    }
+
+    footer a { color: var(--text-muted); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Email Signature Generator</h1>
+      <label class="dark-mode-toggle">
+        Dark mode
+        <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode()" />
+      </label>
+    </header>
+
+    <div class="form-group">
+      <label for="templateSelector">Signature template</label>
+      <select id="templateSelector"></select>
+    </div>
+
+    <div class="form-group">
+      <label for="name">Full name <span style="color:red">*</span></label>
+      <input type="text" id="name" placeholder="Jane Smith" oninput="updateSignature()" />
+    </div>
+
+    <div class="form-group">
+      <label for="title">Job title <span style="color:red">*</span></label>
+      <input type="text" id="title" placeholder="Senior Engineer" oninput="updateSignature()" />
+    </div>
+
+    <div class="form-group">
+      <label for="phone">Phone <span style="font-weight:normal;color:#888">(optional)</span></label>
+      <input type="text" id="phone" placeholder="555-000-0000" oninput="updateSignature()" />
+    </div>
+
+    <div class="form-group">
+      <label for="meeting">Meeting link <span style="font-weight:normal;color:#888">(optional)</span></label>
+      <input type="text" id="meeting" placeholder="https://calendly.com/..." oninput="updateSignature()" />
+    </div>
+
+    <button class="btn" id="copyButton" onclick="copyToClipboard()" disabled>Copy Signature</button>
+
+    <div class="preview-box">
+      <h2>Preview</h2>
+      <div id="signaturePreview"></div>
+    </div>
+
+    <footer>
+      Are you a designer? <a href="preview.html">Open the banner preview tool</a>.
+    </footer>
+  </div>
+
+  <script>
+    let currentSignatureTemplateContent = '';
+
+    function toggleDarkMode() {
+      const body = document.body;
+      const newTheme = body.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+      body.setAttribute('data-theme', newTheme);
+      document.getElementById('darkModeToggle').checked = newTheme === 'dark';
+      localStorage.setItem('darkMode', newTheme);
+    }
+
+    function populateTemplateSelector(templates) {
+      const selector = document.getElementById('templateSelector');
+      selector.innerHTML = '';
+      templates.forEach(template => {
+        const option = document.createElement('option');
+        option.value = template.id;
+        option.textContent = template.displayName;
+        selector.appendChild(option);
+      });
+      const last = localStorage.getItem('selectedSignatureTemplateId');
+      if (last && templates.some(t => t.id === last)) {
+        selector.value = last;
+      }
+      loadSignatureTemplate(templates);
+    }
+
+    async function loadSignatureTemplate(templates) {
+      const selector = document.getElementById('templateSelector');
+      const selectedId = selector.value;
+      const templateInfo = (templates || window._templates).find(t => t.id === selectedId);
+      if (!templateInfo) return;
+      localStorage.setItem('selectedSignatureTemplateId', selectedId);
+      try {
+        const response = await fetch('templates/' + templateInfo.fileName);
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        currentSignatureTemplateContent = await response.text();
+        updateSignature();
+      } catch (err) {
+        document.getElementById('signaturePreview').innerHTML =
+          '<p style="color:red;">Could not load template. Are you running from a web server?</p>';
+      }
+    }
+
+    function checkCopyButtonState() {
+      const name = document.getElementById('name').value.trim();
+      const title = document.getElementById('title').value.trim();
+      document.getElementById('copyButton').disabled = !(name && title);
+    }
+
+    function updateSignature() {
+      const name = document.getElementById('name').value;
+      const title = document.getElementById('title').value;
+      const phone = document.getElementById('phone').value.trim();
+      const meeting = document.getElementById('meeting').value.trim();
+
+      let html = currentSignatureTemplateContent
+        .replace(/{{name}}/g, name)
+        .replace(/{{title}}/g, title)
+        .replace(/{{phone}}/g, phone)
+        .replace(/{{meeting}}/g, meeting)
+        .replace(/{{logoUrl}}/g, '')
+        .replace(/{{website}}/g, '')
+        .replace(/{{company}}/g, '');
+
+      document.getElementById('signaturePreview').innerHTML = html;
+
+      const preview = document.getElementById('signaturePreview');
+      const phoneContainer = preview.querySelector('#phoneContainer');
+      if (phoneContainer) phoneContainer.style.display = phone ? 'inline-block' : 'none';
+      const meetingContainer = preview.querySelector('#meetingLinkContainer');
+      if (meetingContainer) meetingContainer.style.display = meeting ? 'inline-block' : 'none';
+
+      checkCopyButtonState();
+    }
+
+    function copyToClipboard() {
+      const html = document.getElementById('signaturePreview').innerHTML;
+      const blob = new Blob([html], { type: 'text/html' });
+      navigator.clipboard.write([new ClipboardItem({ 'text/html': blob })]).then(() => {
+        alert('Signature copied to clipboard!');
+      }, () => {
+        alert('Failed to copy. Please try again.');
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const saved = localStorage.getItem('darkMode');
+      if (saved) {
+        document.body.setAttribute('data-theme', saved);
+        document.getElementById('darkModeToggle').checked = saved === 'dark';
+      }
+
+      try {
+        const res = await fetch('templates/manifest.json');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const templates = await res.json();
+        window._templates = templates;
+        populateTemplateSelector(templates);
+      } catch (err) {
+        document.getElementById('signaturePreview').innerHTML =
+          '<p style="color:red;">Could not load signature templates. Make sure you\'re running from a web server (not file://).</p>';
+      }
+
+      document.getElementById('templateSelector').addEventListener('change', () => {
+        loadSignatureTemplate(window._templates);
+      });
+
+      checkCopyButtonState();
+    });
+  </script>
+</body>
+</html>
