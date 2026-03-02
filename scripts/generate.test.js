@@ -20,7 +20,7 @@ const { generateBannerTemplate } = require('./generate.js');
 
 test('generateBannerTemplate: includes banner image with correct src and alt', () => {
   const html = generateBannerTemplate('banner-ise-2026.gif', 'ISE 2026');
-  assert.ok(html.includes('../assets/banner-ise-2026.gif'), 'should include relative asset path');
+  assert.ok(html.includes('assets/banner-ise-2026.gif'), 'should include relative asset path');
   assert.ok(html.includes('alt="ISE 2026"'), 'should include display name as alt text');
 });
 
