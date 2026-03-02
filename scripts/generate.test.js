@@ -15,3 +15,29 @@ test('slugToDisplayName: uppercases alphabetic parts, preserves numbers', () => 
   assert.equal(slugToDisplayName('hpbexpo-2026'), 'HPBEXPO 2026');
   assert.equal(slugToDisplayName('ces-2027'), 'CES 2027');
 });
+
+const { generateBannerTemplate } = require('./generate.js');
+
+test('generateBannerTemplate: includes banner image with correct src and alt', () => {
+  const html = generateBannerTemplate('banner-ise-2026.gif', 'ISE 2026');
+  assert.ok(html.includes('../assets/banner-ise-2026.gif'), 'should include relative asset path');
+  assert.ok(html.includes('alt="ISE 2026"'), 'should include display name as alt text');
+});
+
+test('generateBannerTemplate: includes all user placeholders', () => {
+  const html = generateBannerTemplate('banner-ise-2026.gif', 'ISE 2026');
+  assert.ok(html.includes('{{name}}'));
+  assert.ok(html.includes('{{title}}'));
+  assert.ok(html.includes('{{phone}}'));
+  assert.ok(html.includes('{{meeting}}'));
+});
+
+test('generateBannerTemplate: banner image is full width (440px)', () => {
+  const html = generateBannerTemplate('banner-ise-2026.gif', 'ISE 2026');
+  assert.ok(html.includes('width="440"'));
+});
+
+test('generateBannerTemplate: includes legal disclaimer', () => {
+  const html = generateBannerTemplate('banner-ise-2026.gif', 'ISE 2026');
+  assert.ok(html.includes('Olibra LLC'));
+});
