@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Banner Preview — Email Signature Generator</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+    body { font-family: 'Inter', sans-serif; margin: 0; padding: 20px; background: #f5f5f5; color: #333; }
+    .container { max-width: 600px; margin: auto; }
+    h1 { font-size: 20px; margin-bottom: 4px; }
+    .subtitle { color: #666; font-size: 14px; margin-bottom: 24px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; margin-bottom: 6px; font-size: 14px; font-weight: bold; }
+    .form-group input[type="text"] {
+      width: 100%; padding: 10px; box-sizing: border-box;
+      border-radius: 8px; border: 1px solid #ccc; font-family: 'Inter', sans-serif; font-size: 14px;
+    }
+    .upload-area {
+      border: 2px dashed #ccc; border-radius: 8px; padding: 24px;
+      text-align: center; cursor: pointer; background: #fff; margin-bottom: 16px;
+    }
+    .upload-area:hover { border-color: #007bff; }
+    .upload-area input[type="file"] { display: none; }
+    .upload-area .hint { color: #888; font-size: 13px; margin-top: 6px; }
+    .preview-box {
+      border: 1px solid #ccc; padding: 20px; background: #fff;
+      border-radius: 8px; margin-top: 20px;
+    }
+    .preview-box h2 { font-size: 14px; color: #888; margin: 0 0 12px 0; text-transform: uppercase; letter-spacing: 0.05em; }
+    .next-steps {
+      margin-top: 20px; background: #e8f4e8; border-radius: 8px;
+      padding: 16px; font-size: 13px; line-height: 1.6;
+    }
+    .next-steps strong { display: block; margin-bottom: 6px; }
+    .filename-tag {
+      display: inline-block; background: #333; color: #fff;
+      padding: 2px 8px; border-radius: 4px; font-family: monospace; font-size: 13px;
+    }
+    .btn {
+      display: inline-block; padding: 8px 16px; background: #007bff; color: #fff;
+      border-radius: 8px; text-decoration: none; font-size: 13px; margin-top: 8px;
+    }
+    #noPreview { color: #aaa; font-size: 14px; text-align: center; padding: 20px 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Banner Preview</h1>
+    <p class="subtitle">See how your banner looks in the full email signature before uploading to GitHub.</p>
+
+    <div class="form-group">
+      <label>Banner image</label>
+      <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+        <div id="uploadLabel">Click to choose your banner image</div>
+        <div class="hint">GIF, PNG, or JPG &nbsp;·&nbsp; 440px wide recommended</div>
+        <input type="file" id="fileInput" accept=".gif,.png,.jpg,.jpeg" onchange="handleFile(this)" />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="eventName">Event name <span style="font-weight:normal;color:#888">(auto-filled from filename — edit if needed)</span></label>
+      <input type="text" id="eventName" placeholder="e.g. ISE 2026" oninput="renderPreview()" />
+    </div>
+
+    <div class="preview-box">
+      <h2>Signature preview</h2>
+      <div id="previewContainer">
+        <div id="noPreview">Choose a banner image above to see the preview.</div>
+      </div>
+    </div>
+
+    <div class="next-steps" id="nextSteps" style="display:none;">
+      <strong>Looks good? Here's what to do next:</strong>
+      Upload your banner as <span class="filename-tag" id="suggestedFilename"></span> to the
+      <code>assets/</code> folder in the GitHub repository.<br />
+      The signature will appear automatically within ~2 minutes.
+      <br />
+      <a class="btn" id="githubUploadLink" href="#" target="_blank">Open assets/ folder on GitHub →</a>
+      <br /><br />
+      <a href="index.html" style="font-size:13px;">← Back to the signature generator</a>
+    </div>
+  </div>
+
+  <script>
+    // Update this to your actual GitHub repo URL
+    const GITHUB_ASSETS_URL = 'https://github.com/YOUR-ORG/email-generator/upload/main/assets';
+
+    let localImageUrl = null;
+
+    function slugify(name) {
+      return name.toLowerCase().replace(/\s+/g, '-');
+    }
+
+    function filenameToEventName(filename) {
+      const slug = filename.replace(/^banner-/i, '').replace(/\.[^.]+$/, '');
+      return slug
+        .split('-')
+        .map(part => (isNaN(part) ? part.toUpperCase() : part))
+        .join(' ');
+    }
+
+    function handleFile(input) {
+      const file = input.files[0];
+      if (!file) return;
+
+      if (localImageUrl) URL.revokeObjectURL(localImageUrl);
+      localImageUrl = URL.createObjectURL(file);
+
+      document.getElementById('uploadLabel').textContent = file.name;
+
+      const derived = filenameToEventName(file.name);
+      document.getElementById('eventName').value = derived;
+
+      renderPreview();
+    }
+
+    function renderPreview() {
+      if (!localImageUrl) return;
+
+      const eventName = document.getElementById('eventName').value || 'Event Name';
+      const slug = slugify(eventName);
+      const suggestedFilename = `banner-${slug}.gif`;
+
+      document.getElementById('previewContainer').innerHTML = `
+        <table cellpadding="0" cellspacing="0" width="440" border="0" style="font-family: Verdana, sans-serif; font-size: 12px; line-height: 1.5; color: #878799;">
+          <tr>
+            <td style="vertical-align: top; width: 160px;">
+              <img src="assets/logo-email.gif" alt="Company Logo" width="130" />
+            </td>
+            <td style="vertical-align: top; padding-bottom: 16px; padding-top: 8px;">
+              <strong style="color: #3A3B4C;">Jane Smith</strong><br />
+              <span style="color: #555555; display: inline-block;">Senior Engineer</span><br />
+              <span>Tel: <a href="#" style="color: #0000EE; text-decoration: underline;">555-000-0000</a></span><br />
+              <a href="#" style="color: #0000EE; text-decoration: underline;">Schedule a Meeting</a><br />
+              <span style="display: block; margin-top: 8px;"><a href="http://www.bondhome.io" style="color: #0000EE; text-decoration: underline;">www.bondhome.io</a></span>
+            </td>
+          </tr>
+          <tr>
+            <td colspan="2">
+              <img src="${localImageUrl}" alt="${eventName}" width="440" style="display:block;" />
+            </td>
+          </tr>
+          <tr>
+            <td colspan="2" style="color: #999999; font-size: 8px; padding-top: 8px; border-top: 1px solid #bcbec0;">
+              This e-mail and any files transmitted with it are, unless otherwise marked, the property of Olibra LLC.
+            </td>
+          </tr>
+        </table>
+      `;
+
+      document.getElementById('noPreview').style.display = 'none';
+      document.getElementById('suggestedFilename').textContent = suggestedFilename;
+      document.getElementById('githubUploadLink').href = GITHUB_ASSETS_URL;
+      document.getElementById('nextSteps').style.display = 'block';
+    }
+  </script>
+</body>
+</html>
