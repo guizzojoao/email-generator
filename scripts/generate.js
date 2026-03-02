@@ -55,4 +55,57 @@ function generateBannerTemplate(bannerFile, displayName) {
 </table>`;
 }
 
-module.exports = { parseSlug, slugToDisplayName, generateBannerTemplate };
+/**
+ * Given a list of banner filenames, returns the full manifest array.
+ * Default template is always first; banner templates sorted alphabetically.
+ */
+function buildManifest(bannerFiles) {
+  const bannerEntries = bannerFiles.map(bannerFile => {
+    const slug = parseSlug(bannerFile);
+    return {
+      id: slug,
+      fileName: `signature-${slug}.html`,
+      displayName: slugToDisplayName(slug),
+    };
+  });
+
+  bannerEntries.sort((a, b) => a.displayName.localeCompare(b.displayName));
+
+  return [
+    { id: 'default', fileName: 'signature-default.html', displayName: 'Default' },
+    ...bannerEntries,
+  ];
+}
+
+const ROOT = path.join(__dirname, '..');
+const ASSETS_DIR = path.join(ROOT, 'assets');
+const TEMPLATES_DIR = path.join(ROOT, 'templates');
+
+function run() {
+  const bannerFiles = fs.readdirSync(ASSETS_DIR)
+    .filter(f => /^banner-.+\.(gif|png|jpg|jpeg)$/i.test(f))
+    .sort();
+
+  const manifest = buildManifest(bannerFiles);
+
+  for (const entry of manifest) {
+    if (entry.id === 'default') continue;
+    const bannerFile = bannerFiles.find(f => parseSlug(f) === entry.id);
+    const html = generateBannerTemplate(bannerFile, entry.displayName);
+    fs.writeFileSync(path.join(TEMPLATES_DIR, entry.fileName), html + '\n');
+  }
+
+  fs.writeFileSync(
+    path.join(TEMPLATES_DIR, 'manifest.json'),
+    JSON.stringify(manifest, null, 2) + '\n'
+  );
+
+  console.log(`Generated ${manifest.length - 1} banner template(s).`);
+  console.log(`Manifest written with ${manifest.length} template(s).`);
+}
+
+if (require.main === module) {
+  run();
+}
+
+module.exports = { parseSlug, slugToDisplayName, generateBannerTemplate, buildManifest };

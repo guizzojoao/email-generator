@@ -41,3 +41,29 @@ test('generateBannerTemplate: includes legal disclaimer', () => {
   const html = generateBannerTemplate('banner-ise-2026.gif', 'ISE 2026');
   assert.ok(html.includes('Olibra LLC'));
 });
+
+const { buildManifest } = require('./generate.js');
+
+test('buildManifest: default template is always first', () => {
+  const manifest = buildManifest(['banner-ise-2026.gif', 'banner-cedia-2025.gif']);
+  assert.equal(manifest[0].id, 'default');
+});
+
+test('buildManifest: creates entry for each banner file', () => {
+  const manifest = buildManifest(['banner-ise-2026.gif', 'banner-cedia-2025.gif']);
+  assert.equal(manifest.length, 3); // default + 2 banners
+});
+
+test('buildManifest: banner entries are sorted alphabetically by displayName', () => {
+  const manifest = buildManifest(['banner-ise-2026.gif', 'banner-cedia-2025.gif']);
+  assert.equal(manifest[1].displayName, 'CEDIA 2025');
+  assert.equal(manifest[2].displayName, 'ISE 2026');
+});
+
+test('buildManifest: each entry has id, fileName, displayName', () => {
+  const manifest = buildManifest(['banner-ise-2026.gif']);
+  const entry = manifest.find(t => t.id === 'ise-2026');
+  assert.ok(entry, 'entry should exist');
+  assert.equal(entry.fileName, 'signature-ise-2026.html');
+  assert.equal(entry.displayName, 'ISE 2026');
+});
