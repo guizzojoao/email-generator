@@ -28,7 +28,7 @@ function generateBannerTemplate(bannerFile, displayName) {
   return `<table cellpadding="0" cellspacing="0" width="440" border="0" style="font-family: Verdana, sans-serif; font-size: 12px; line-height: 1.5; color: #878799;">
   <tr>
     <td style="vertical-align: top; width: 160px;">
-      <img src="assets/logo-email.gif" alt="Company Logo" width="130" />
+      <img src="${BASE_URL}/assets/logo-email.gif" alt="Company Logo" width="130" />
     </td>
     <td style="vertical-align: top; padding-bottom: 16px; padding-top: 8px;">
       <strong style="color: #3A3B4C;">{{name}}</strong><br />
@@ -44,7 +44,7 @@ function generateBannerTemplate(bannerFile, displayName) {
   </tr>
   <tr>
     <td colspan="2">
-      <img src="assets/${bannerFile}" alt="${displayName}" width="440" />
+      <img src="${BASE_URL}/assets/${bannerFile}" alt="${displayName}" width="440" />
     </td>
   </tr>
   <tr>
@@ -80,6 +80,7 @@ function buildManifest(bannerFiles) {
 const ROOT = path.join(__dirname, '..');
 const ASSETS_DIR = path.join(ROOT, 'assets');
 const TEMPLATES_DIR = path.join(ROOT, 'templates');
+const BASE_URL = 'https://d1oxdoouo2fhid.cloudfront.net';
 
 function run() {
   const bannerFiles = fs.readdirSync(ASSETS_DIR)
