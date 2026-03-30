@@ -4,6 +4,8 @@ A web app for generating and copying customizable email signatures with event ba
 
 **Live site:** https://d1oxdoouo2fhid.cloudfront.net
 
+![Email Signature Generator](docs/screenshot.png)
+
 ---
 
 ## How it works
